@@ -2,7 +2,7 @@ import React from 'react';
 import { Props } from '.';
 import classNames from 'classnames';
 
-export const User: React.FC<Props> = ({ user, onSelected }) => {
+export const User: React.FC<Props> = React.memo(({ user, onSelected }) => {
   // eslint-disable-next-line no-console
   console.log('render User');
   const sex = user.sex === 'm';
@@ -23,4 +23,6 @@ export const User: React.FC<Props> = ({ user, onSelected }) => {
       </p>
     </div>
   );
-};
+});
+
+User.displayName = 'User';
