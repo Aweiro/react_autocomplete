@@ -2,5 +2,6 @@ import { Person } from '../../types/Person';
 
 export interface Props {
   users: Person[];
-  setSelectedUser: (value: Person | null) => void;
+  onSelect: (value: Person | null) => void;
+  debounceDelay?: number;
 }

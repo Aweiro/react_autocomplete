@@ -1,34 +1,61 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { User } from '../User/User';
 import { Props } from '.';
 import { Person } from '../../types/Person';
+import classNames from 'classnames';
 
-export const Dropdown: React.FC<Props> = ({ users, setSelectedUser }) => {
+export const Dropdown: React.FC<Props> = ({
+  users,
+  onSelect,
+  debounceDelay = 300,
+}) => {
   // eslint-disable-next-line no-console
   console.log('render Dropdown');
   const [focus, setFocus] = useState(false);
   const [rawQuery, setRawQuery] = useState('');
   const [query, setQuery] = useState('');
 
-  const timerId = useRef(0);
+  const timerId = useRef<number | null>(null);
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    window.clearTimeout(timerId.current);
+    const trimmed = event.target.value.trim().toLowerCase();
+
+    if (timerId.current) {
+      clearTimeout(timerId.current);
+    }
 
     timerId.current = window.setTimeout(() => {
-      setQuery(event.target.value.trim().toLowerCase());
-    }, 300);
+      if (trimmed === '') {
+        setQuery('');
+      } else {
+        setQuery(trimmed);
+      }
+    }, debounceDelay);
     setRawQuery(event.target.value);
-    setSelectedUser(null);
+    onSelect(null);
   }
 
-  const selectUser = useCallback(
+  useEffect(() => {
+    return () => {
+      if (timerId.current) {
+        clearTimeout(timerId.current);
+      }
+    };
+  }, []);
+
+  const onSelected = useCallback(
     (user: Person) => {
-      setSelectedUser(user);
+      onSelect(user);
       setRawQuery(user.name);
       setQuery(user.name.toLowerCase());
     },
-    [setSelectedUser],
+    [onSelect],
   );
 
   const filteredUsers = useMemo(
@@ -37,7 +64,7 @@ export const Dropdown: React.FC<Props> = ({ users, setSelectedUser }) => {
   );
 
   return (
-    <div className="dropdown is-active">
+    <div className={classNames('dropdown', { 'is-active': focus })}>
       <div className="dropdown-trigger">
         <input
           value={rawQuery}
@@ -52,23 +79,21 @@ export const Dropdown: React.FC<Props> = ({ users, setSelectedUser }) => {
       </div>
 
       <div className="dropdown-menu" role="menu" data-cy="suggestions-list">
-        {focus && filteredUsers.length > 0 && (
+        {filteredUsers.length > 0 ? (
           <div className="dropdown-content">
             {filteredUsers.map(user => (
-              <User key={user.slug} user={user} onSelected={selectUser} />
+              <User key={user.slug} user={user} onSelected={onSelected} />
             ))}
           </div>
-        )}
-
-        {filteredUsers.length === 0 && (
+        ) : (
           <div
             className="
-            notification
-            is-danger
-            is-light
-            mt-3
-            is-align-self-flex-start
-          "
+        notification
+        is-danger
+        is-light
+        mt-3
+        is-align-self-flex-start
+      "
             role="alert"
             data-cy="no-suggestions-message"
           >

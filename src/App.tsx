@@ -19,7 +19,7 @@ export const App: React.FC = () => {
             : 'No selected person'}
         </h1>
 
-        <Dropdown users={peopleFromServer} setSelectedUser={setSelectedUser} />
+        <Dropdown users={peopleFromServer} onSelect={setSelectedUser} />
       </main>
     </div>
   );
